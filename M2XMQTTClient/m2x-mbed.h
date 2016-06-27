@@ -7,6 +7,8 @@
 #define DBGLNEND printf("\n")
 #endif  /* DEBUG */
 
+#define F(str) str
+
 class M2XTimer {
 public:
   void start() { _timer.start(); }
