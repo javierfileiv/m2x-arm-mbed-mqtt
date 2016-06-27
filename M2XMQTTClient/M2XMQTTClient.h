@@ -166,6 +166,23 @@ public:
   int updateLocation(const char* deviceId, const char* name,
                      T latitude, T longitude, T elevation);
 
+  // Delete values from a data stream
+  // You will need to provide from and end date/time strings in the ISO8601
+  // format "yyyy-mm-ddTHH:MM:SS.SSSZ" where
+  //   yyyy: the year
+  //   mm: the month
+  //   dd: the day
+  //   HH: the hour (24 hour format)
+  //   MM: the minute
+  //   SS.SSS: the seconds (to the millisecond)
+  // NOTE: the time is given in Zulu (GMT)
+  // M2X will delete all values within the from to end date/time range.
+  // The status code is 204 on success and 400 on a bad request (e.g. the
+  // timestamp is not in ISO8601 format or the from timestamp is not less than
+  // or equal to the end timestamp.
+  int deleteValues(const char* deviceId, const char* streamName,
+                   const char* from, const char* end);
+
   // Following fields are public so mmqtt callback functions can access directly
   Client* _client;
 private:
@@ -204,6 +221,10 @@ private:
   int printUpdateLocationPayload(Print* print,
                                  const char* deviceId, const char* name,
                                  T latitude, T longitude, T elevation);
+
+  int printDeleteValuesPayload(Print* print,
+                               const char* deviceId, const char* streamName,
+                               const char* from, const char* end);
 
   int readStatusCode();
   void close();
@@ -635,6 +656,51 @@ int M2XMQTTClient::printUpdateLocationPayload(Print* print,
   bytes += print->print(longitude);
   bytes += print->print(F("\",\"elevation\":\""));
   bytes += print->print(elevation);
+  bytes += print->print(F(("\"}}")));
+  return bytes;
+}
+
+int M2XMQTTClient::deleteValues(const char* deviceId, const char* streamName,
+                                const char* from, const char* end) {
+  int length;
+  if (!_connected) {
+    if (connectToServer() != E_OK) {
+      DBGLN("%s", "ERROR: Cannot connect to M2X server!");
+      return E_NOCONNECTION;
+    }
+  }
+  _current_id++;
+  length = printDeleteValuesPayload(&_null_print, deviceId, streamName, from, end);
+  mmqtt_s_encode_fixed_header(&_connection, m2x_mmqtt_puller,
+                              MMQTT_PACK_MESSAGE_TYPE(MMQTT_MESSAGE_TYPE_PUBLISH),
+                              length + _key_length + 15);
+  mmqtt_s_encode_uint16(&_connection, m2x_mmqtt_puller, _key_length + 13);
+  mmqtt_s_encode_buffer(&_connection, m2x_mmqtt_puller, (const uint8_t *) F("m2x/"), 4);
+  mmqtt_s_encode_buffer(&_connection, m2x_mmqtt_puller, (const uint8_t *) _key, _key_length);
+  mmqtt_s_encode_buffer(&_connection, m2x_mmqtt_puller, (const uint8_t *) F("/requests"), 9);
+  printDeleteValuesPayload(&_mmqtt_print, deviceId, streamName, from, end);
+  return readStatusCode();
+}
+
+int M2XMQTTClient::printDeleteValuesPayload(Print *print,
+                                            const char* deviceId, const char* streamName,
+                                            const char* from, const char* end) {
+  int bytes = 0;
+  bytes += print->print(F("{\"id\":\""));
+  bytes += print->print(_current_id);
+  bytes += print->print(F("\",\"method\":\"DELETE\",\"resource\":\""));
+  if (_path_prefix) { bytes += print->print(_path_prefix); }
+  bytes += print->print(F("/v2/devices/"));
+  bytes += print->print(deviceId);
+  bytes += print->print(F("/streams/"));
+  bytes += print->print(streamName);
+  bytes += print->print(F("/values"));
+  bytes += print->print(F("\",\"agent\":\""));
+  bytes += print->print(USER_AGENT);
+  bytes += print->print(F("\",\"body\":{\"from\":\""));
+  bytes += print->print(from);
+  bytes += print->print(F("\",\"end\":\""));
+  bytes += print->print(end);
   bytes += print->print(F(("\"}}")));
   return bytes;
 }
