@@ -48,7 +48,7 @@ To run the examples, please follow the steps below:
     https://developer.mbed.org/users/citrusbyte/code/M2XMQTTClient/
     ```
 
-8. Create a file named `main.cpp`, and paste in any of the examples. Modify the M2X API Key, device ID or stream name as needed by the examples. You can find existing examples at [here](https://github.com/attm2x/m2x-arm-mbed-mqtt/tree/master/examples).
+8. Create a file named `main.cpp`, and paste in any of the examples. Modify the M2X API Key, device ID or stream name as needed by the examples. You can find existing examples [here](https://github.com/attm2x/m2x-arm-mbed-mqtt/tree/master/examples).
 9. At the top right corner, make sure you are selecting the same platform as your board.
 10. When you are done, click `Compile`. if no error is found, a bin file will be downloaded to your computer.
 11. Copy that bin file to your mbed microcontroller, press the `reset` button, then you should be able to run the program!
