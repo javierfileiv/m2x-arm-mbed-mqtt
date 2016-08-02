@@ -39,7 +39,7 @@ To run the examples, please follow the steps below:
 6. Use the same step as #5 to import minimal-mqtt library:
 
     ```
-    https://mbed.org/teams/defmacro/code/minimal-mqtt/
+    https://mbed.org/users/defmacro/code/minimal-mqtt/
     ```
 
 7. Use the same step as #5 to import the following M2X client library:
