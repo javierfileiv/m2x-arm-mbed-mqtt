@@ -483,6 +483,7 @@ int M2XMQTTClient::printUpdateStreamValuePayload(Print* print, const char* devic
   bytes += print->print(value);
   bytes += print->print(F("\"}"));
   bytes += print->print(F("}"));
+  return bytes;
 }
 
 template <class T>
