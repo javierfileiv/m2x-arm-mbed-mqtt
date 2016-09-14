@@ -327,6 +327,7 @@ int M2XMQTTClient::connectToServer() {
     connect_header.flags = 0x82;
     connect_header.keepalive = 60;
     packet_length = mmqtt_s_connect_header_encoded_length(&connect_header) +
+                    mmqtt_s_string_encoded_length(_key_length) +
                     mmqtt_s_string_encoded_length(_key_length);
     status = mmqtt_s_encode_fixed_header(&_connection, m2x_mmqtt_puller,
                                          MMQTT_PACK_MESSAGE_TYPE(MMQTT_MESSAGE_TYPE_CONNECT),
@@ -344,6 +345,16 @@ int M2XMQTTClient::connectToServer() {
       _client->stop();
       return E_DISCONNECTED;
     }
+    /* Client ID */
+    status = mmqtt_s_encode_string(&_connection, m2x_mmqtt_puller,
+                                   (const uint8_t *) _key, _key_length);
+    if (status != MMQTT_STATUS_OK) {
+      DBG("%s", F("Error sending connect packet payload: "));
+      DBGLN("%d", status);
+      _client->stop();
+      return E_DISCONNECTED;
+    }
+    /* Username */
     status = mmqtt_s_encode_string(&_connection, m2x_mmqtt_puller,
                                    (const uint8_t *) _key, _key_length);
     if (status != MMQTT_STATUS_OK) {
